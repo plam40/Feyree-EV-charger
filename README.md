@@ -16,10 +16,10 @@ A complete guide to integrating the Feyree 1P EV charger with Tasmota firmware o
 ║   NEVER OPEN THE CHARGER OR WORK ON INTERNAL COMPONENTS               ║
 ║   WHILE CONNECTED TO MAINS POWER (230V/110V)                          ║
 ║                                                                       ║
-║   ⚡ ALWAYS DISCONNECT FROM MAINS BEFORE OPENING                       ║
-║   ⚡ VERIFY POWER IS OFF WITH A VOLTAGE TESTER                         ║
-║   ⚡ WAIT FOR CAPACITORS TO DISCHARGE (5+ MINUTES)                     ║
-║   ⚡ ONLY QUALIFIED ELECTRICIANS SHOULD MODIFY THIS EQUIPMENT          ║
+║   ⚡ ALWAYS DISCONNECT FROM MAINS BEFORE OPENING                      ║
+║   ⚡ VERIFY POWER IS OFF WITH A VOLTAGE TESTER                        ║
+║   ⚡ WAIT FOR CAPACITORS TO DISCHARGE (5+ MINUTES)                    ║
+║   ⚡ ONLY QUALIFIED ELECTRICIANS SHOULD MODIFY THIS EQUIPMENT         ║
 ║                                                                       ║
 ║   Failure to follow these precautions can result in:                  ║
 ║   - Electric shock leading to death                                   ║
