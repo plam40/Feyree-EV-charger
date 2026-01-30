@@ -95,9 +95,7 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ## 🔧 Hardware Requirements
 
-- **Feyree EV Charger with replaced WBR3 module ** (Tuya-based) with **Must be allready having ESP8266 module**
-- **Voltage tester/multimeter** (to verify power is disconnected - **MANDATORY**)
-- **ESP8266 flashing tools** (USB-to-Serial adapter, jumper wires - assumed you have these)
+- **Feyree EV Charger with replaced WBR3 module** (Tuya-based) with **ESP8266 module preflashed with Tasmota**
 
 > **⚠️ PREREQUISITE**: This guide assumes you have already replaced the stock WBR3 module with an ESP8266 module following the detailed guide on the [Elektroda.com forum](https://www.elektroda.com/rtvforum/topic4085036.html). If you haven't done this yet, **STOP HERE** and complete the module replacement first. The Elektroda guide provides essential safety information and step-by-step instructions for opening the charger and accessing the WBR3 module.
 
