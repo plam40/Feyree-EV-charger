@@ -161,13 +161,13 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ### 3. Install Tasmota Script
 
-1. In Tasmota console, enable scripting:
+1. In Tasmota console disable opttion 114:
    ```
    SetOption114 0
    ```
    *(This hides the power button as it's not used)*
 
-2. Navigate to **Consoles** → **Edit Script**
+2. Navigate to **Tools** → **Edit Script**
 
 3. Paste the complete script:
 
