@@ -1,6 +1,6 @@
 # Feyree EV Charger - Tasmota & Home Assistant Integration
 
-## This is work in progress - keep alive function is still not fully finished
+## ⚠️ This is work in progress - keep alive function is still not fully finished
 
 A complete guide to integrating the Feyree 1P EV charger with Tasmota firmware on ESP8266 module and Home Assistant for smart charging control and monitoring.
 
