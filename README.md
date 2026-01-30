@@ -84,13 +84,14 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ## 📸 Screenshots
 
-### Home Assistant Dashboard
-![Home Assistant Dashboard](ha-dashboard.png)
-*Custom HA dashboard showing real-time monitoring, current control slider, and scheduled charging with visual timeline*
+### Home Assistant Dashboard and Tasmota Web Interface
 
-### Tasmota Web Interface
-![Tasmota Interface](tasmota-interface.png)
-*Tasmota's built-in web interface with charging controls and real-time data*
+<p align="left">
+  <img src="ha-dashboard.png" alt="Alt text" width="300">
+
+  <img src="tasmota-interface.png" alt="Alt text" width="300">
+</p>
+
 
 ## 🔧 Hardware Requirements
 
