@@ -1,5 +1,17 @@
 # Feyree EV Charger - Tasmota & Home Assistant Integration
 
+### Home Assistant Dashboard, Tasmota Web Interface, Feyree charger
+
+<p align="left">
+  <img src="ha-dashboard.png" alt="Alt text" height="400">
+
+  <img src="tasmota-interface.png" alt="Alt text" height="400">
+
+  <img src="Feyree-7.6kw-32A-single-phase.png" alt="Alt text" height="400">
+</p>
+
+
+
 ## ⚠️ This is work in progress - keep alive function is still not fully finished
 
 A complete guide to integrating the Feyree 1P EV charger with Tasmota firmware on ESP8266 module and Home Assistant for smart charging control and monitoring.
@@ -81,19 +93,6 @@ This project enables full local control of the Feyree EV charger by replacing th
 - **Keep-Alive Automation**: Prevents charger timeout during long charging sessions
 - **Home Assistant Integration**: Full control through HA dashboard
 - **MQTT Communication**: Local network control, no cloud dependency
-
-## 📸 Screenshots
-
-### Home Assistant Dashboard, Tasmota Web Interface, Feyree charger
-
-<p align="left">
-  <img src="ha-dashboard.png" alt="Alt text" height="400">
-
-  <img src="tasmota-interface.png" alt="Alt text" height="400">
-
-  <img src="Feyree-7.6kw-32A-single-phase.png" alt="Alt text" height="400">
-</p>
-
 
 ## 🔧 Hardware Requirements
 
