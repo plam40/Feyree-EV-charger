@@ -97,7 +97,6 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 - **Feyree EV Charger** (Tuya-based) with **WBR3 module**
 - **Replacement WBR3 module** (ESP8266-based, Tuya compatible) - if not already replaced
-- **Torx screwdriver set** (for opening the charger enclosure)
 - **Voltage tester/multimeter** (to verify power is disconnected - **MANDATORY**)
 - **ESP8266 flashing tools** (USB-to-Serial adapter, jumper wires - assumed you have these)
 
