@@ -1,6 +1,6 @@
 # Feyree EV Charger - Tasmota & Home Assistant Integration
 
-A complete guide to integrating the Feyree EV charger with Tasmota firmware on WBR3 module and Home Assistant for smart charging control and monitoring.
+A complete guide to integrating the Feyree 1P EV charger with Tasmota firmware on ESP8266 module and Home Assistant for smart charging control and monitoring.
 
 ---
 
@@ -9,22 +9,22 @@ A complete guide to integrating the Feyree EV charger with Tasmota firmware on W
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
 ║                                                                       ║
-║   🔴 DANGER - HIGH VOLTAGE - RISK OF DEATH OR SERIOUS INJURY 🔴      ║
+║   🔴 DANGER - HIGH VOLTAGE - RISK OF DEATH OR SERIOUS INJURY 🔴        ║
 ║                                                                       ║
-║   NEVER OPEN THE CHARGER OR WORK ON INTERNAL COMPONENTS              ║
-║   WHILE CONNECTED TO MAINS POWER (230V/110V)                         ║
+║   NEVER OPEN THE CHARGER OR WORK ON INTERNAL COMPONENTS               ║
+║   WHILE CONNECTED TO MAINS POWER (230V/110V)                          ║
 ║                                                                       ║
-║   ⚡ ALWAYS DISCONNECT FROM MAINS BEFORE OPENING                     ║
-║   ⚡ VERIFY POWER IS OFF WITH A VOLTAGE TESTER                       ║
-║   ⚡ WAIT FOR CAPACITORS TO DISCHARGE (5+ MINUTES)                   ║
-║   ⚡ ONLY QUALIFIED ELECTRICIANS SHOULD MODIFY THIS EQUIPMENT        ║
+║   ⚡ ALWAYS DISCONNECT FROM MAINS BEFORE OPENING                       ║
+║   ⚡ VERIFY POWER IS OFF WITH A VOLTAGE TESTER                         ║
+║   ⚡ WAIT FOR CAPACITORS TO DISCHARGE (5+ MINUTES)                     ║
+║   ⚡ ONLY QUALIFIED ELECTRICIANS SHOULD MODIFY THIS EQUIPMENT          ║
 ║                                                                       ║
-║   Failure to follow these precautions can result in:                 ║
-║   - Electric shock leading to death                                  ║
-║   - Severe burns                                                     ║
-║   - Fire hazard                                                      ║
-║   - Property damage                                                  ║
-║   - Voiding of all warranties and insurance                          ║
+║   Failure to follow these precautions can result in:                  ║
+║   - Electric shock leading to death                                   ║
+║   - Severe burns                                                      ║
+║   - Fire hazard                                                       ║
+║   - Property damage                                                   ║
+║   - Voiding of all warranties and insurance                           ║
 ║                                                                       ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
@@ -45,7 +45,7 @@ A complete guide to integrating the Feyree EV charger with Tasmota firmware on W
 - [Hardware Requirements](#hardware-requirements)
 - [Software Requirements](#software-requirements)
 - [Installation](#installation)
-  - [1. Flash Tasmota to WBR3 Module](#1-flash-tasmota-to-wbr3-module)
+  - [1. Flash Tasmota to ESP8266 Module](#1-flash-tasmota-to-ESP8266-module)
   - [2. Configure Tasmota](#2-configure-tasmota)
   - [3. Install Tasmota Script](#3-install-tasmota-script)
   - [4. Configure Home Assistant](#4-configure-home-assistant)
@@ -57,11 +57,11 @@ A complete guide to integrating the Feyree EV charger with Tasmota firmware on W
 
 ## 🎯 Overview
 
-This project enables full local control of the Feyree EV charger by replacing the cloud-dependent Tuya firmware with Tasmota on the WBR3 module. It provides real-time monitoring, current adjustment (6-32A), and scheduled charging through Home Assistant.
+This project enables full local control of the Feyree EV charger by replacing the cloud-dependent Tuya firmware with Tasmota on the ESP8266 module. It provides real-time monitoring, current adjustment (6-32A), and scheduled charging through Home Assistant.
 
 **📚 Prerequisites (Required Before Starting):**
-- ✅ Completed WBR3 module replacement following the [Elektroda.com guide](https://www.elektroda.com/rtvforum/topic4085036.html)
-- ✅ Knowledge of ESP8266/WBR3 flashing procedures
+- ✅ Completed WBR3 module replacement with an ESP8266 module following the [Elektroda.com guide](https://www.elektroda.com/rtvforum/topic4085036.html)
+- ✅ Knowledge of ESP8266 flashing procedures
 - ✅ Working MQTT broker integrated with Home Assistant
 - ✅ Basic Home Assistant YAML configuration skills
 - ✅ Understanding of high-voltage electrical safety procedures
@@ -98,7 +98,7 @@ This project enables full local control of the Feyree EV charger by replacing th
 - **Voltage tester/multimeter** (to verify power is disconnected - **MANDATORY**)
 - **ESP8266 flashing tools** (USB-to-Serial adapter, jumper wires - assumed you have these)
 
-> **⚠️ PREREQUISITE**: This guide assumes you have already replaced the stock WBR3 module following the detailed guide on the [Elektroda.com forum](https://www.elektroda.com/rtvforum/topic4085036.html). If you haven't done this yet, **STOP HERE** and complete the module replacement first. The Elektroda guide provides essential safety information and step-by-step instructions for opening the charger and accessing the WBR3 module.
+> **⚠️ PREREQUISITE**: This guide assumes you have already replaced the stock WBR3 module with an ESP8266 module following the detailed guide on the [Elektroda.com forum](https://www.elektroda.com/rtvforum/topic4085036.html). If you haven't done this yet, **STOP HERE** and complete the module replacement first. The Elektroda guide provides essential safety information and step-by-step instructions for opening the charger and accessing the WBR3 module.
 
 > **🔴 REMINDER**: ALL work on the module must be done with the charger **COMPLETELY DISCONNECTED** from mains power. Verify disconnection with a voltage tester.
 
@@ -112,7 +112,7 @@ This project enables full local control of the Feyree EV charger by replacing th
 - **ESP8266 Flashing Knowledge** - ability to flash ESP modules via serial connection
 
 **Assumed Prerequisites:**
-- You know how to flash ESP8266/WBR3 modules (many tutorials available online)
+- You know how to flash ESP8266 modules (many tutorials available online)
 - You have a working MQTT broker integrated with Home Assistant
 - You understand basic Home Assistant configuration (YAML editing)
 - You've completed the [Elektroda.com WBR3 replacement guide](https://www.elektroda.com/rtvforum/topic4085036.html)
@@ -121,15 +121,9 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ### 1. Flash Tasmota to WBR3 Module
 
-> **⚠️ SAFETY CHECKPOINT**: 
-> 1. **DISCONNECT** the charger from mains power
-> 2. **VERIFY** with a voltage tester that power is OFF
-> 3. **WAIT** 5+ minutes for capacitors to discharge
-> 4. **ONLY THEN** open the enclosure and access the WBR3 module
 
-> **📖 MODULE REPLACEMENT**: If you haven't already replaced the WBR3 module, refer to the [Elektroda.com guide](https://www.elektroda.com/rtvforum/topic4085036.html) for complete disassembly and module replacement instructions.
 
-**Flash Tasmota v14.x with scripting support** to the WBR3 module using your preferred method:
+**Flash Tasmota v14.x with scripting support** to the ESP8266 module using your preferred method:
 - Use **tasmota-scripting.bin** or **tasmota32-scripting.bin** from the Tasmota specials repository
 - Standard ESP8266 flashing procedures apply (GPIO0 to GND for flash mode, 9600 or 115200 baud)
 - Many tutorials are available online for ESP8266/WBR3 flashing if needed
@@ -139,7 +133,7 @@ This project enables full local control of the Feyree EV charger by replacing th
 2. **VERIFY** mains power is still disconnected
 3. Reassemble the charger (if module was removed)
 4. **ONLY THEN** reconnect to mains power
-5. The WBR3 will boot into Tasmota and create a WiFi access point
+5. The ESP8266 will boot into Tasmota and create a WiFi access point
 
 ### 2. Configure Tasmota
 
@@ -738,30 +732,6 @@ The brightness (0-255) maps to current (6-32A):
 
 Formula: `Current = (Brightness / 255 * 26) + 6`
 
-## 🎨 Dashboard Example
-
-Add to your Lovelace dashboard:
-
-```yaml
-type: entities
-title: EV Charger
-entities:
-  - entity: light.108_ev_charger
-    name: Charging Control
-  - entity: sensor.108_ev_charger_state
-  - entity: sensor.108_ev_charger_energy_voltage
-  - entity: sensor.108_ev_charger_energy_current
-  - entity: sensor.108_ev_charger_energy_power
-  - entity: sensor.108_ev_charger_session_energy
-  - entity: sensor.108_ev_charger_temperature
-  - entity: sensor.108_ev_charger_preset_current
-  - entity: sensor.108_ev_charger_fault
-  - type: divider
-  - entity: input_boolean.ev_charging_schedule_enabled
-  - entity: input_datetime.ev_charge_start
-  - entity: input_datetime.ev_charge_stop
-  - entity: input_boolean.ev_charger_keep_alive
-```
 
 ## 🤝 Contributing
 
@@ -776,14 +746,6 @@ This is a personal hobby project shared as-is with **NO ACTIVE MAINTENANCE**.
 - ✅ Share your improvements with the community
 - ✅ Use this as a starting point for your own projects
 
-### Ideas for Your Fork
-
-- Add energy cost tracking
-- Integration with solar panel monitoring
-- Smart charging based on electricity pricing
-- Multi-charger support
-- Enhanced fault notification system
-- Wear leveling analytics
 
 ## 📄 License
 
