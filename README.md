@@ -84,12 +84,14 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ## 📸 Screenshots
 
-### Home Assistant Dashboard and Tasmota Web Interface
+### Home Assistant Dashboard, Tasmota Web Interface, Feyree charger
 
 <p align="left">
-  <img src="ha-dashboard.png" alt="Alt text" width="300">
+  <img src="ha-dashboard.png" alt="Alt text" height="500">
 
-  <img src="tasmota-interface.png" alt="Alt text" width="300">
+  <img src="tasmota-interface.png" alt="Alt text" height="500">
+
+  <img src="Feyree-7.6kw-32A-single-phase.png" alt="Alt text" height="500">
 </p>
 
 
