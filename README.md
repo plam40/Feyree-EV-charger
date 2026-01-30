@@ -104,8 +104,8 @@ This project enables full local control of the Feyree EV charger by replacing th
 ## 💻 Software Requirements
 
 - **Tasmota v14.x** with scripting support from the [Tasmota Specials Repository](https://github.com/tasmota/install)
-  - ⚠️ Standard Tasmota builds may not include full scripting support
-  - Download the **tasmota-scripting.bin** or **tasmota32-scripting.bin** variant
+  - ⚠️ Standard Tasmota builds does not include full scripting support
+  - Download the **tasmota-scripting.bin** variant
 - **Home Assistant** (any recent version with MQTT support)
 - **MQTT Broker** (Mosquitto or similar) - must be already configured and running
 - **ESP8266 Flashing Knowledge** - ability to flash ESP modules via serial connection
