@@ -119,14 +119,12 @@ This project enables full local control of the Feyree EV charger by replacing th
 
 ## 🚀 Installation
 
-### 1. Flash Tasmota to WBR3 Module
-
-
+### 1. Flash Tasmota to ESP8266 Module
 
 **Flash Tasmota v14.x with scripting support** to the ESP8266 module using your preferred method:
-- Use **tasmota-scripting.bin** or **tasmota32-scripting.bin** from the Tasmota specials repository
+- Use **tasmota-scripting.bin** from the Tasmota specials repository
 - Standard ESP8266 flashing procedures apply (GPIO0 to GND for flash mode, 9600 or 115200 baud)
-- Many tutorials are available online for ESP8266/WBR3 flashing if needed
+- Many tutorials are available online for ESP8266 flashing if needed
 
 **After Flashing:**
 1. Disconnect USB-to-Serial adapter
@@ -141,7 +139,7 @@ This project enables full local control of the Feyree EV charger by replacing th
 > 1. Ensure the charger enclosure is **FULLY REASSEMBLED**
 > 2. Verify all **connections are secure** and no tools/wires are left inside
 > 3. **ONLY NOW** reconnect to mains power to configure Tasmota
-> 4. If you need to access the WBR3 module again, **DISCONNECT MAINS FIRST**
+> 4. If you need to access the module again, **DISCONNECT MAINS FIRST**
 
 1. Connect to the Tasmota WiFi AP (e.g., `tasmota-XXXXXX`)
 2. Configure your WiFi credentials
