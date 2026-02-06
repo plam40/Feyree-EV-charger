@@ -1,0 +1,18 @@
+input_boolean:
+  ev_charging_schedule_enabled:
+    name: EV Charging Schedule
+    icon: mdi:calendar-clock
+  ev_charger_keep_alive:
+    name: EV Charger Keep Alive
+    icon: mdi:calendar-clock
+
+input_datetime:
+  ev_charge_start:
+    name: Charge Start Time
+    has_date: false
+    has_time: true
+
+  ev_charge_stop:
+    name: Charge Stop Time
+    has_date: false
+    has_time: true

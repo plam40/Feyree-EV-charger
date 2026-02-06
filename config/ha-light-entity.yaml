@@ -1,0 +1,27 @@
+light:
+  - platform: template
+    lights:
+      108_ev_charger:
+        friendly_name: "EV Charger"
+        unique_id: "108_ev_charger"
+        value_template: >-
+          {{ is_state('sensor.108_ev_charger_state', 'Charging') }}
+        level_template: >-
+          {% set current = states('sensor.108_ev_charger_preset_current') | int(16) %}
+          {{ ((current - 6) * 255 / 26) | round(0) | int }}
+        turn_on:
+          - service: mqtt.publish
+            data:
+              topic: "cmnd/108/TuyaSend4"
+              payload: "124,0"
+        turn_off:
+          - service: mqtt.publish
+            data:
+              topic: "cmnd/108/TuyaSend4"
+              payload: "124,1"
+        set_level:
+          - service: mqtt.publish
+            data:
+              topic: "cmnd/108/TuyaSend2"
+              payload: >-
+                115,{{ ((brightness / 255 * 26) + 6) | round(0) | int }}

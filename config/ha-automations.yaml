@@ -1,0 +1,54 @@
+alias: EV Charger Keep Alive
+triggers:
+  - trigger: time_pattern
+    minutes: /20
+conditions:
+  - condition: state
+    entity_id: input_boolean.ev_charger_keep_alive
+    state: "on"
+  - condition: numeric_state
+    entity_id: sensor.108_ev_charger_energy_current
+    below: 0.2
+actions:
+  - variables:
+      stored_preset: "{{ states('sensor.108_ev_charger_preset_current') | int(16) }}"
+      was_charging: "{{ is_state('light.108_ev_charger', 'on') }}"
+  - data:
+      name: EV Charger Keep Alive
+      message: >
+        Starting pulse. Was charging: {{ was_charging }}, Original Preset: {{
+        stored_preset }}A
+    action: logbook.log
+  - data:
+      topic: cmnd/108/TuyaSend2
+      payload: 115,6
+    action: mqtt.publish
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 1
+      milliseconds: 500
+  - data:
+      topic: cmnd/108/TuyaSend4
+      payload: 124,0
+    action: mqtt.publish
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 59
+      milliseconds: 0
+  - data:
+      topic: cmnd/108/TuyaSend4
+      payload: 124,1
+    action: mqtt.publish
+  - delay:
+      seconds: 2
+  - data:
+      topic: cmnd/108/TuyaSend2
+      payload: 115,{{ stored_preset }}
+    action: mqtt.publish
+  - data:
+      name: EV Charger Keep Alive
+      message: Pulse complete. Preset restored to {{ stored_preset }}A
+    action: logbook.log
+mode: single

@@ -1,0 +1,57 @@
+mqtt:
+  sensor:
+    - name: "108 EV Charger State"
+      unique_id: "108_ev_charger_state"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.state }}"
+
+    - name: "108 EV Charger Energy Voltage"
+      unique_id: "108_ev_charger_energy_voltage"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.voltage }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+      state_class: measurement
+
+    - name: "108 EV Charger Energy Current"
+      unique_id: "108_ev_charger_energy_current"
+      state_topic: "stat/108/data"
+      value_template: "{{ (value_json.current) | round(0) }}"
+      unit_of_measurement: "A"
+      device_class: current
+      state_class: measurement
+
+    - name: "108 EV Charger Energy Power"
+      unique_id: "108_ev_charger_energy_power"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.power }}"
+      unit_of_measurement: "kW"
+      device_class: power
+      state_class: measurement
+
+    - name: "108 EV Charger Session Energy"
+      unique_id: "108_ev_charger_session_energy"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.energy }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "108 EV Charger Temperature"
+      unique_id: "108_ev_charger_temperature"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.temp }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+
+    - name: "108 EV Charger Preset Current"
+      unique_id: "108_ev_charger_preset_current"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.preset }}"
+      unit_of_measurement: "A"
+
+    - name: "108 EV Charger Fault"
+      unique_id: "108_ev_charger_fault"
+      state_topic: "stat/108/data"
+      value_template: "{{ value_json.fault }}"

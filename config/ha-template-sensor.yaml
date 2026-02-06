@@ -1,0 +1,5 @@
+template:
+  - sensor:
+      - name: "Server Time Seconds"
+        unique_id: server_time_sec_001
+        state: "{{ now().strftime('%H:%M:%S') }}"
