@@ -1,0 +1,166 @@
+>D
+p:cs=0
+p:vr=0
+p:ar=0
+p:wr=0
+p:tr=0
+p:pa=0
+p:er=0
+p:fc=0
+ft=""
+st=""
+d=""
+p:mc=16
+p:cc=1
+>B
+baudrate 9600
+TuyaMCU 0,4
+TuyaSend0
+>E
+if TuyaReceived#DpType2Id125>=0
+then
+pa=TuyaReceived#DpType2Id125
+mc=pa
+endif
+if TuyaReceived#DpType4Id101>=0
+then
+cs=TuyaReceived#DpType4Id101
+endif
+if TuyaReceived#DpType4Id124>=0
+then
+cc=TuyaReceived#DpType4Id124
+endif
+d=TuyaReceived#DpType5Id10
+if d!=""
+then
+if d=="0x00"
+then
+fc=0
+endif
+if d=="0x1000"
+then
+fc=4096
+endif
+if d=="0x01"
+then
+fc=1
+endif
+if d=="0x02"
+then
+fc=2
+endif
+if d=="0x04"
+then
+fc=4
+endif
+if d=="0x08"
+then
+fc=8
+endif
+if d=="0x10"
+then
+fc=16
+endif
+if d=="0x20"
+then
+fc=32
+endif
+if d=="0x40"
+then
+fc=64
+endif
+if d=="0x80"
+then
+fc=128
+endif
+endif
+if TuyaReceived#DpType2Id102>=0
+then
+vr=TuyaReceived#DpType2Id102
+endif
+if TuyaReceived#DpType2Id105>=0
+then
+ar=TuyaReceived#DpType2Id105
+endif
+if TuyaReceived#DpType2Id112>=0
+then
+er=TuyaReceived#DpType2Id112
+endif
+if TuyaReceived#DpType2Id109>=0
+then
+wr=TuyaReceived#DpType2Id109
+endif
+if TuyaReceived#DpType2Id110>=0
+then
+tr=TuyaReceived#DpType2Id110
+endif
+>S
+if chg[mc]>0
+then
+=>TuyaSend2 115,%0mc%
+svars
+endif
+if chg[cc]>0
+then
+=>TuyaSend4 124,%0cc%
+svars
+endif
+switch cs
+case 0
+st="Free"
+case 1
+st="Plugged in"
+case 2
+st="Charging"
+case 3
+st="???"
+case 4
+st="Paused"
+case 5
+st="Charged"
+case 6
+st="Fault"
+ends
+switch fc
+case 0
+ft="OK"
+case 1
+ft="Undervolt"
+case 2
+ft="Overvolt"
+case 4
+ft="Overcurrent"
+case 8
+ft="PE"
+case 16
+ft="Temp"
+case 32
+ft="CP"
+case 64
+ft="Leakage"
+case 128
+ft="Reserved"
+case 4096
+ft="EMERGENCY"
+ends
+if chg[cs]>0
+or chg[vr]>0
+or chg[ar]>0
+or chg[wr]>0
+or chg[tr]>0
+or chg[pa]>0
+or chg[er]>0
+or chg[fc]>0
+then
+=>Publish stat/108/data {"state":"%st%","voltage":%1(vr/10)%,"current":%1(ar/10)%,"power":%3(wr/10)%,"energy":%3(er/10)%,"temp":%1(tr/10)%,"preset":%0pa%,"fault":"%ft%"}
+>W
+{s}State{m}%st%{e}
+{s}Volts{m}%1(vr/10)% V{e}
+{s}Amps{m}%1(ar/10)% A{e}
+{s}kW{m}%1(wr/10)% kW{e}
+{s}Session energy{m}%1(er/10)% kWh{e}
+{s}Temp{m}%1(tr/10)% C{e}
+{s}Preset{m}%0pa%.0 A{e}
+{s}Fault{m}%ft%{e}
+bu(cc "Stopped" "Charging")
+sl(6 32 mc "6 A" "Current set %0mc%.0 A" "32 A")

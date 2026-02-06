@@ -1,0 +1,572 @@
+type: grid
+columns: 1
+cards:
+  - type: custom:button-card
+    entity: light.108_ev_charger
+    show_icon: false
+    show_name: false
+    show_state: false
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    triggers_update:
+      - light.108_ev_charger
+      - sensor.server_time_seconds
+      - sensor.108_ev_charger_energy_current
+      - sensor.108_ev_charger_energy_voltage
+      - sensor.108_ev_charger_energy_power
+      - sensor.108_ev_charger_energy_total
+      - sensor.108_ev_charger_temperature
+      - sensor.108_ev_charger_state
+      - sensor.108_ev_charger_fault
+      - sensor.108_ev_charger_preset_current
+      - input_boolean.ev_charging_schedule_enabled
+      - input_boolean.ev_charger_keep_alive
+      - input_datetime.ev_charge_start
+      - input_datetime.ev_charge_stop
+    styles:
+      card:
+        - height: 580px
+        - border-radius: 15px
+        - border: none
+        - overflow: visible
+        - background: rgba(255,255,255,0.08)
+        - box-shadow: 0 4px 12px rgba(0,0,0,0.2)
+        - position: relative
+      custom_fields:
+        icon:
+          - pointer-events: auto
+        keep_alive_indicator:
+          - pointer-events: auto
+        schedule_icon:
+          - pointer-events: auto
+        slider:
+          - pointer-events: auto
+        schedule_buttons:
+          - pointer-events: auto
+    custom_fields:
+      background_bar: |
+        [[[
+          const power = parseFloat(states['sensor.108_ev_charger_energy_power']?.state || 0);
+          const max = 7500;
+          const pct = Math.min((power / max) * 100, 100);
+          let color = 'rgba(100,100,100,0.3)';
+          if (power > 100) color = 'linear-gradient(to right, rgba(100,100,100,0.5), rgba(100,200,100,0.5))';
+          if (power > 2000) color = 'linear-gradient(to right, #4fc3f7, #66bb6a)';
+          if (power > 4000) color = 'linear-gradient(to right, #66bb6a, #ffb74d)';
+          if (power > 6000) color = 'linear-gradient(to right, #ffb74d, #ef5350)';
+          return `<div style="position:absolute;left:0;top:0;height:260px;width:${pct}%;background:${color};border-radius:15px 15px 0 0;transition:width 0.5s ease;pointer-events:none;"></div>`;
+        ]]]
+      icon: |
+        [[[
+          const state = states['sensor.108_ev_charger_state']?.state || 'Unknown';
+          const current = parseFloat(states['sensor.108_ev_charger_energy_current']?.state || 0);
+          let color = 'rgba(150,150,150,0.5)';
+          let icon = 'mdi:car-electric';
+
+          if (state === 'Charging' || state === 'Plugged in') {
+            if (current > 1) {
+              color = 'lime';
+              icon = 'mdi:ev-station';
+            } else {
+              color = 'rgb(200,200,100)';
+            }
+          } else if (state === 'Charged') {
+            color = 'rgb(76,175,80)';
+            icon = 'mdi:battery-charging-100';
+          } else if (state === 'Fault') {
+            color = 'rgb(244,67,54)';
+            icon = 'mdi:alert-circle';
+          }
+
+          const animation = (current > 1 && state === 'Charging') ? 'pulse 2s ease-in-out infinite' : 'none';
+
+          return `
+            <div onclick="event.stopPropagation();
+                         const hass = this.getRootNode().host._hass;
+                         hass.callService('light', 'toggle', {entity_id: '${entity.entity_id}'});"
+                 style="position:absolute;left:50%;top:25px;transform:translateX(-50%);width:60px;height:60px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,0.3);">
+              <ha-icon icon="${icon}" style="width:44px;height:44px;color:${color};animation:${animation};"></ha-icon>
+            </div>
+          `;
+        ]]]
+      charge_status: |
+        [[[
+          const state = states['sensor.108_ev_charger_state']?.state || 'Unknown';
+          const fault = states['sensor.108_ev_charger_fault']?.state || 'OK';
+          let statusColor = 'rgba(150,150,150,0.7)';
+
+          if (state === 'Charging') statusColor = 'rgb(76,175,80)';
+          else if (state === 'Charged') statusColor = 'rgb(100,200,100)';
+          else if (state === 'Plugged in') statusColor = 'rgb(200,200,100)';
+          else if (state === 'Paused') statusColor = 'rgba(255,200,0,0.9)';
+          else if (state === 'Fault') statusColor = 'rgb(244,67,54)';
+
+          const faultWarning = fault !== 'OK' ? `<div style="font-size:11px;color:rgb(255,152,0);margin-top:4px;">⚠ ${fault}</div>` : '';
+
+          return `
+            <div style="position:absolute;left:50%;top:95px;transform:translateX(-50%);text-align:center;pointer-events:none;">
+              <div style="font-size:14px;font-weight:600;color:${statusColor};letter-spacing:0.5px;">${state}</div>
+              ${faultWarning}
+            </div>
+          `;
+        ]]]
+      info_grid: |
+        [[[
+          const current = parseFloat(states['sensor.108_ev_charger_energy_current']?.state || 0);
+          const voltage = parseFloat(states['sensor.108_ev_charger_energy_voltage']?.state || 0);
+          const temp = parseFloat(states['sensor.108_ev_charger_temperature']?.state || 0);
+          const power = parseFloat(states['sensor.108_ev_charger_energy_power']?.state || 0);
+          const powerKw = power.toFixed(1);
+          const energy = parseFloat(states['sensor.108_ev_charger_session_energy']?.state || 0);
+
+          // "Requested" value (from light brightness) - fallback
+          const lightState = states['light.108_ev_cahrger'];
+          const brightness = lightState?.attributes?.brightness ?? 0;
+          const ampsFromBrightness = Math.round((((brightness - 1) / 254) * 26) + 6);
+
+          // "Reported by charger"
+          const presetEntity = states['sensor.108_ev_charger_preset_current'];
+          const presetRaw = presetEntity?.state;
+          const presetReported = parseInt(presetRaw, 10);
+          const presetValid = Number.isFinite(presetReported) && presetReported >= 6 && presetReported <= 32;
+
+          // Slider follows reported value when valid; otherwise fallback to brightness-derived
+          const sliderAmps = presetValid ? presetReported : ampsFromBrightness;
+          const presetReportedTxt = Number.isFinite(presetReported) ? String(presetReported) : '—';
+
+          const textColor = 'rgba(255,255,255,0.9)';
+          const iconColor = 'rgba(255,255,255,0.6)';
+
+          const iconColWidth = '20px';
+          const labelColWidth = '80px';
+          const valueColWidth = '80px';
+          const rowHeight = '24px';
+
+          return `
+            <div style="position:absolute;left:20px;right:20px;top:145px;display:flex;justify-content:space-between;pointer-events:none;">
+              <div style="display:table;border-spacing:0;padding-right:6px;">
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:flash" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Power:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">${powerKw} kW</span>
+                  </div>
+                </div>
+
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:current-ac" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Current:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">${current.toFixed(1)} A</span>
+                  </div>
+                </div>
+
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:lightning-bolt" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Voltage:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">${voltage.toFixed(0)} V</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="width:1px;background:rgba(255,255,255,0.15);margin:0 6px;"></div>
+
+              <div style="display:table;border-spacing:0;padding-left:6px;">
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:battery-charging" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Energy:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">${energy.toFixed(2)} kWh</span>
+                  </div>
+                </div>
+
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:thermometer" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Temp:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">${temp.toFixed(1)} °C</span>
+                  </div>
+                </div>
+
+                <div style="display:table-row;height:${rowHeight};">
+                  <div style="display:table-cell;width:${iconColWidth};text-align:right;padding:2px;vertical-align:middle;">
+                    <ha-icon icon="mdi:speedometer" style="width:16px;height:16px;color:${iconColor};"></ha-icon>
+                  </div>
+                  <div style="display:table-cell;width:${labelColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">Limit:</span>
+                  </div>
+                  <div style="display:table-cell;width:${valueColWidth};text-align:left;padding:2px;vertical-align:middle;">
+                    <span style="font-size:14px;color:${textColor};">
+                      <span class="limit-setpoint">${sliderAmps}</span> / ${presetReportedTxt} A
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        ]]]
+      keep_alive_indicator: |
+        [[[
+          const keepAlive = states['input_boolean.ev_charger_keep_alive'];
+          if (!keepAlive) return '';
+          const enabled = keepAlive.state === 'on';
+          const color = enabled ? 'rgb(76,175,80)' : 'rgba(150,150,150,0.3)';
+          const icon = enabled ? 'mdi:sleep-off' : 'mdi:sleep';
+          return `
+            <div onclick="event.stopPropagation();
+                         const hass = this.getRootNode().host._hass;
+                         hass.callService('input_boolean', 'toggle', {entity_id: 'input_boolean.ev_charger_keep_alive'});"
+                 style="position:absolute;right:20px;top:25px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:${color};border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+              <ha-icon icon="${icon}" style="width:22px;height:22px;color:white;"></ha-icon>
+            </div>
+          `;
+        ]]]
+      slider: |
+        [[[
+          // Fallback from light brightness
+          const brightness = entity?.attributes?.brightness ?? 0;
+          const ampsFromBrightness = Math.round((((brightness - 1) / 254) * 26) + 6);
+
+          // Prefer charger-reported preset current when valid
+          const presetRaw = states['sensor.108_ev_charger_preset_current']?.state;
+          const presetReported = parseInt(presetRaw, 10);
+          const presetValid = Number.isFinite(presetReported) && presetReported >= 6 && presetReported <= 32;
+
+          const amperage = presetValid ? presetReported : ampsFromBrightness;
+
+          const fillPercent = Math.min(98, ((amperage - 6) / (32 - 6)) * 100);
+
+          return `
+            <div style="position:absolute;top:230px;left:20px;right:20px;height:70px;display:flex;flex-direction:column;gap:8px;">
+              <div style="text-align:center;font-size:14px;color:rgba(255,255,255,0.8);font-weight:600;pointer-events:none;">
+                <span class="preset-display-text">Preset current ${amperage}A</span>
+              </div>
+
+              <div style="position:relative;height:40px;display:flex;align-items:center;">
+                <div style="position:absolute;width:100%;height:24px;background:rgba(255,255,255,0.15);border-radius:12px;pointer-events:none;"></div>
+
+                <div class="slider-fill-track"
+                     style="position:absolute;width:${fillPercent}%;height:24px;background:rgba(76,175,80,0.5);border-radius:12px 0 0 12px;pointer-events:none;transition:width 0.1s ease;"></div>
+
+                <input type="range"
+                       class="charging-slider"
+                       min="6"
+                       max="32"
+                       value="${amperage}"
+                       step="1"
+                       style="position:relative;
+                              width:100%;
+                              height:24px;
+                              background:transparent;
+                              border-radius:12px;
+                              outline:none;
+                              -webkit-appearance:none;
+                              appearance:none;
+                              cursor:pointer;
+                              touch-action: pan-x;
+                              z-index:10;"
+                       oninput="
+                         const value = parseInt(this.value, 10);
+                         const fillPct = Math.min(98, ((value - 6) / (32 - 6)) * 100);
+
+                         const root = this.getRootNode();
+                         const textDisplay = root.querySelector('.preset-display-text');
+                         const fillTrack = root.querySelector('.slider-fill-track');
+                         const limitSet = root.querySelector('.limit-setpoint');
+
+                         if (textDisplay) textDisplay.textContent = 'Preset current ' + value + 'A';
+                         if (fillTrack) fillTrack.style.width = fillPct + '%';
+
+                         // FIX #1: update Info -> Limit first value live while dragging
+                         if (limitSet) limitSet.textContent = String(value);
+                       "
+                       onchange="
+                         const hass = this.getRootNode().host._hass;
+                         const amps = parseInt(this.value, 10);
+                         if (amps >= 6 && amps <= 32) {
+                            let newBrightness = Math.round(((amps - 6) / 26) * 254) + 1; // 6A->1, 32A->255
+                            newBrightness = Math.max(1, Math.min(255, newBrightness));
+
+                            hass.callService('light', 'turn_on', {
+                              entity_id: '${entity.entity_id}',
+                              brightness: newBrightness
+                            });
+                         }
+                       "
+                />
+              </div>
+
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.5);padding:0 2px;pointer-events:none;">
+                <span>6A</span>
+                <span>32A</span>
+              </div>
+
+              <style>
+                input[type=range].charging-slider::-webkit-slider-thumb {
+                  -webkit-appearance: none;
+                  appearance: none;
+                  width: 32px;
+                  height: 32px;
+                  background: white;
+                  border-radius: 50%;
+                  cursor: pointer;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                }
+                input[type=range].charging-slider::-moz-range-thumb {
+                  width: 32px;
+                  height: 32px;
+                  background: white;
+                  border-radius: 50%;
+                  cursor: pointer;
+                  border: none;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                }
+                input[type=range].charging-slider::-webkit-slider-runnable-track {
+                  background: transparent;
+                  height: 24px;
+                }
+                input[type=range].charging-slider::-moz-range-track {
+                  background: transparent;
+                  height: 24px;
+                }
+              </style>
+            </div>
+          `;
+        ]]]
+      divider: |
+        [[[
+          return `<div style="position:absolute;top:315px;left:20px;right:20px;height:1px;background:rgba(255,255,255,0.15);pointer-events:none;"></div>`;
+        ]]]
+      schedule_icon: |
+        [[[
+          const enabled = states['input_boolean.ev_charging_schedule_enabled'].state === 'on';
+          const color = enabled ? 'rgb(76,175,80)' : 'rgba(150,150,150,0.3)';
+          return `
+            <div onclick="event.stopPropagation();
+                         const hass = this.getRootNode().host._hass;
+                         hass.callService('input_boolean', 'toggle', {entity_id: 'input_boolean.ev_charging_schedule_enabled'});"
+                 style="position:absolute;left:20px;top:340px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:${color};border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+              <ha-icon icon="mdi:calendar-clock" style="width:24px;height:24px;color:white;"></ha-icon>
+            </div>
+          `;
+        ]]]
+      schedule_status: |
+        [[[
+          const enabled = states['input_boolean.ev_charging_schedule_enabled'].state === 'on';
+          return `<div style="position:absolute;left:68px;top:350px;font-size:14px;font-weight:600;color:${enabled ? 'rgb(76,175,80)' : 'rgba(150,150,150,0.7)'};pointer-events:none;letter-spacing:0.3px;">${enabled ? 'Scheduled' : 'Manual'}</div>`;
+        ]]]
+      countdown: |
+        [[[
+          const startEntity = states['input_datetime.ev_charge_start'];
+          const stopEntity = states['input_datetime.ev_charge_stop'];
+          const scheduleEnabled = states['input_boolean.ev_charging_schedule_enabled'];
+          const enabled = scheduleEnabled && scheduleEnabled.state === 'on';
+          const serverTime = states['sensor.server_time_seconds'];
+
+          if (!enabled || !startEntity || !stopEntity || !startEntity.state || !stopEntity.state || !serverTime) {
+            return '';
+          }
+
+          const [currentH, currentM, currentS] = serverTime.state.split(':').map(Number);
+          const [startH, startM, startS = 0] = startEntity.state.split(':').map(Number);
+          const [stopH, stopM, stopS = 0] = stopEntity.state.split(':').map(Number);
+
+          const currentTotalSeconds = currentH * 3600 + currentM * 60 + currentS;
+          const startTotalSeconds = startH * 3600 + startM * 60 + startS;
+          const stopTotalSeconds = stopH * 3600 + stopM * 60 + stopS;
+
+          let timeToStartSeconds = startTotalSeconds - currentTotalSeconds;
+          let timeToStopSeconds = stopTotalSeconds - currentTotalSeconds;
+
+          if (timeToStartSeconds < 0) timeToStartSeconds += 86400;
+          if (timeToStopSeconds < 0) timeToStopSeconds += 86400;
+
+          let inWindow = false;
+          if (stopTotalSeconds < startTotalSeconds) {
+            inWindow = currentTotalSeconds >= startTotalSeconds || currentTotalSeconds < stopTotalSeconds;
+          } else {
+            inWindow = currentTotalSeconds >= startTotalSeconds && currentTotalSeconds < stopTotalSeconds;
+          }
+
+          const targetSeconds = inWindow ? timeToStopSeconds : timeToStartSeconds;
+          const hours = Math.floor(targetSeconds / 3600);
+          const mins = Math.floor((targetSeconds % 3600) / 60);
+          const secs = targetSeconds % 60;
+
+          let message = '';
+          let color = 'rgba(255,200,0,0.9)';
+
+          if (inWindow) {
+            message = `Stops in ${hours}h ${mins}m ${secs}s`;
+            color = 'rgb(76,175,80)';
+          } else {
+            message = `Starts in ${hours}h ${mins}m ${secs}s`;
+          }
+
+          return `<div style="position:absolute;right:20px;top:350px;font-size:11px;font-weight:600;color:${color};pointer-events:none;">${message}</div>`;
+        ]]]
+      timeline_markers: |
+        [[[
+          const startEntity = states['input_datetime.ev_charge_start'];
+          const stopEntity = states['input_datetime.ev_charge_stop'];
+
+          if (!startEntity || !stopEntity || !startEntity.state || !stopEntity.state) {
+            return '';
+          }
+
+          const startTime = startEntity.state;
+          const stopTime = stopEntity.state;
+
+          const startHour = parseFloat(startTime.split(':')[0]) + parseFloat(startTime.split(':')[1]) / 60;
+          const stopHour = parseFloat(stopTime.split(':')[0]) + parseFloat(stopTime.split(':')[1]) / 60;
+
+          let chargeDuration = stopHour - startHour;
+          if (chargeDuration < 0) chargeDuration += 24;
+
+          const totalTimelineSpan = chargeDuration / 0.7;
+          const padding = (totalTimelineSpan - chargeDuration) / 2;
+
+          let timelineStart = startHour - padding;
+          if (timelineStart < 0) timelineStart += 24;
+
+          const markers = [];
+          for (let i = 0; i < 5; i++) {
+            let hour = timelineStart + (i * totalTimelineSpan / 4);
+            if (hour >= 24) hour -= 24;
+            const displayHour = Math.floor(hour);
+            const displayMin = Math.round((hour - displayHour) * 60);
+
+            if (totalTimelineSpan < 2) {
+              markers.push(`${displayHour}:${displayMin.toString().padStart(2,'0')}`);
+            } else {
+              markers.push(displayMin === 0 ? `${displayHour}:00` : `${displayHour}:${displayMin.toString().padStart(2,'0')}`);
+            }
+          }
+
+          return `
+            <div style="position:absolute;top:410px;left:20px;right:20px;display:flex;justify-content:space-between;pointer-events:none;">
+              ${markers.map(m => `<div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:500;">${m}</div>`).join('')}
+            </div>
+          `;
+        ]]]
+      timeline: |
+        [[[
+          const startEntity = states['input_datetime.ev_charge_start'];
+          const stopEntity = states['input_datetime.ev_charge_stop'];
+          const serverTime = states['sensor.server_time_seconds'];
+          const scheduleEnabled = states['input_boolean.ev_charging_schedule_enabled'];
+
+          if (!startEntity || !stopEntity || !startEntity.state || !stopEntity.state || !serverTime) {
+            return `<div style="position:absolute;top:438px;left:20px;right:20px;height:24px;background:rgba(100,100,100,0.3);border-radius:12px;pointer-events:none;"></div>`;
+          }
+
+          const startTime = startEntity.state;
+          const stopTime = stopEntity.state;
+          const enabled = scheduleEnabled && scheduleEnabled.state === 'on';
+
+          const startHour = parseFloat(startTime.split(':')[0]) + parseFloat(startTime.split(':')[1]) / 60;
+          const stopHour = parseFloat(stopTime.split(':')[0]) + parseFloat(stopTime.split(':')[1]) / 60;
+
+          let chargeDuration = stopHour - startHour;
+          if (chargeDuration < 0) chargeDuration += 24;
+
+          const totalTimelineSpan = chargeDuration / 0.7;
+          const padding = (totalTimelineSpan - chargeDuration) / 2;
+
+          let timelineStart = startHour - padding;
+          if (timelineStart < 0) timelineStart += 24;
+
+          const startPct = 15;
+          const widthPct = 70;
+
+          const color = enabled ? 'linear-gradient(to right, #4fc3f7, #66bb6a)' : 'rgba(150,150,150,0.3)';
+
+          const [currentH, currentM, currentS] = serverTime.state.split(':').map(Number);
+          const currentHour = currentH + currentM / 60 + currentS / 3600;
+          let currentOffset = currentHour - timelineStart;
+          if (currentOffset < 0) currentOffset += 24;
+          const currentPct = (currentOffset / totalTimelineSpan) * 100;
+
+          let currentMarker = '';
+          if (currentPct >= 0 && currentPct <= 100) {
+            currentMarker = `<div style="position:absolute;left:${currentPct}%;top:-8px;bottom:-8px;width:2px;background:rgba(255,100,100,0.8);box-shadow:0 0 4px rgba(255,100,100,0.6);pointer-events:none;"></div>`;
+          }
+
+          return `
+            <div style="position:absolute;top:438px;left:20px;right:20px;height:24px;background:rgba(100,100,100,0.3);border-radius:12px;overflow:visible;pointer-events:none;">
+              <div style="position:absolute;left:${startPct}%;width:${widthPct}%;height:100%;background:${color};border-radius:12px;pointer-events:none;"></div>
+              <div style="position:absolute;left:${startPct}%;top:50%;width:16px;height:16px;background:white;border-radius:50%;transform:translate(-50%, -50%);box-shadow:0 2px 4px rgba(0,0,0,0.3);pointer-events:none;"></div>
+              <div style="position:absolute;left:${startPct + widthPct}%;top:50%;width:16px;height:16px;background:white;border-radius:50%;transform:translate(-50%, -50%);box-shadow:0 2px 4px rgba(0,0,0,0.3);pointer-events:none;"></div>
+              ${currentMarker}
+            </div>
+          `;
+        ]]]
+      schedule_buttons: |
+        [[[
+          const startEntity = states['input_datetime.ev_charge_start'];
+          const stopEntity = states['input_datetime.ev_charge_stop'];
+
+          const startTime = startEntity && startEntity.state ? startEntity.state.substring(0,5) : '--:--';
+          const stopTime = stopEntity && stopEntity.state ? stopEntity.state.substring(0,5) : '--:--';
+          const needsSetup = startTime === '--:--' || stopTime === '--:--';
+
+          const startHour = startEntity && startEntity.state ? parseFloat(startEntity.state.split(':')[0]) + parseFloat(startEntity.state.split(':')[1]) / 60 : 0;
+          const stopHour = stopEntity && stopEntity.state ? parseFloat(stopEntity.state.split(':')[0]) + parseFloat(stopEntity.state.split(':')[1]) / 60 : 0;
+
+          let chargeDuration = stopHour - startHour;
+          if (chargeDuration < 0) chargeDuration += 24;
+
+          const hours = Math.floor(chargeDuration);
+          const minutes = Math.round((chargeDuration - hours) * 60);
+          const durationText = `${hours}h ${minutes}m`;
+
+          return `
+            <div style="position:absolute;top:490px;left:20px;right:20px;display:flex;gap:12px;">
+              <div style="flex:1;background:rgba(76,175,80,0.25);border-radius:12px;padding:12px;text-align:center;cursor:pointer;border:1px solid ${needsSetup ? 'rgba(255,150,150,0.5)' : 'rgba(76,175,80,0.4)'};"
+                   onclick="event.stopPropagation();
+                            const e = new CustomEvent('hass-more-info', {bubbles:true, composed:true, detail:{entityId:'input_datetime.ev_charge_start'}});
+                            this.dispatchEvent(e);">
+                <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px;font-weight:500;">Start time</div>
+                <div style="font-size:14px;color:white;font-weight:700;">${startTime}</div>
+              </div>
+
+              <div style="flex:0.6;background:rgba(255,255,255,0.08);border-radius:12px;padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;border:1px solid rgba(255,255,255,0.15);pointer-events:none;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;font-weight:500;">Duration</div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.9);font-weight:700;">${durationText}</div>
+              </div>
+
+              <div style="flex:1;background:rgba(244,67,54,0.25);border-radius:12px;padding:12px;text-align:center;cursor:pointer;border:1px solid ${needsSetup ? 'rgba(255,150,150,0.5)' : 'rgba(244,67,54,0.4)'};"
+                   onclick="event.stopPropagation();
+                            const e = new CustomEvent('hass-more-info', {bubbles:true, composed:true, detail:{entityId:'input_datetime.ev_charge_stop'}});
+                            this.dispatchEvent(e);">
+                <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px;font-weight:500;">Stop time</div>
+                <div style="font-size:14px;color:white;font-weight:700;">${stopTime}</div>
+              </div>
+            </div>
+          `;
+        ]]]
