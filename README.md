@@ -511,74 +511,26 @@ Add to `automations.yaml`:
 
 ```yaml
 
-- id: '1769440190340'
-  alias: EV Scheduled Charging
-  description: Automatically start/stop charging based on schedule
-  triggers:
-  - at: input_datetime.ev_charge_start
-    id: start_charging
-    trigger: time
-  - at: input_datetime.ev_charge_stop
-    id: stop_charging
-    trigger: time
-  conditions:
-  - condition: state
-    entity_id: input_boolean.ev_charging_schedule_enabled
-    state: 'on'
-  actions:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: start_charging
-      sequence:
-      - target:
-          entity_id: light.108_ev_charger
-        action: light.turn_on
-    - conditions:
-      - condition: trigger
-        id: stop_charging
-      sequence:
-      - target:
-          entity_id: light.108_ev_charger
-        action: light.turn_off
-  mode: single
-- id: '1769443165773'
-  alias: Update Time Every Second
-  description: ''
-  triggers:
-  - seconds: /1
-    trigger: time_pattern
-  actions:
-  - target:
-      entity_id: sensor.server_time_seconds
-    action: homeassistant.update_entity
-    data:
-      entity_id:
-      - sensor.server_time_seconds
-- id: ev_keep_alive_pulse_001
-  alias: EV Charger Keep Alive
-  triggers:
-  - hours: '*'
-    minutes: '55'
-    trigger: time_pattern
-  conditions:
+alias: EV Charger Keep Alive
+triggers:
+  - trigger: time_pattern
+    minutes: /20
+conditions:
   - condition: state
     entity_id: input_boolean.ev_charger_keep_alive
-    state: 'on'
+    state: "on"
   - condition: numeric_state
     entity_id: sensor.108_ev_charger_energy_current
     below: 0.2
-  actions:
+actions:
   - variables:
-      stored_preset: '{{ states(''sensor.108_ev_charger_preset_current'') | int(16)
-        }}'
-      was_charging: '{{ is_state(''light.108_ev_charger'', ''on'') }}'
+      stored_preset: "{{ states('sensor.108_ev_charger_preset_current') | int(16) }}"
+      was_charging: "{{ is_state('light.108_ev_charger', 'on') }}"
   - data:
       name: EV Charger Keep Alive
-      message: 'Starting pulse. Was charging: {{ was_charging }}, Original Preset:
-        {{ stored_preset }}A
-
-        '
+      message: >
+        Starting pulse. Was charging: {{ was_charging }}, Original Preset: {{
+        stored_preset }}A
     action: logbook.log
   - data:
       topic: cmnd/108/TuyaSend2
@@ -596,7 +548,7 @@ Add to `automations.yaml`:
   - delay:
       hours: 0
       minutes: 0
-      seconds: 20
+      seconds: 59
       milliseconds: 0
   - data:
       topic: cmnd/108/TuyaSend4
@@ -612,7 +564,7 @@ Add to `automations.yaml`:
       name: EV Charger Keep Alive
       message: Pulse complete. Preset restored to {{ stored_preset }}A
     action: logbook.log
-  mode: single
+mode: single
 
 ```
 
