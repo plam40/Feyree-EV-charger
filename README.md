@@ -203,8 +203,12 @@ This project enables full local control of the Feyree EV charger by replacing th
 | DP ID | Type | Description | Range |
 |-------|------|-------------|-------|
 | 101 | Enum | Charging state | 0-6 |
-| 102 | Integer | Voltage | 0-2500 (x0.1V) |
-| 105 | Integer | Current | 0-320 (x0.1A) |
+| 102 | Integer | Voltage A | 0-2500 (x0.1V) |
+| 103 | Integer | Voltage B | 0-2500 (x0.1V) |
+| 104 | Integer | Voltage C | 0-2500 (x0.1V) |
+| 105 | Integer | Current A | 0-320 (x0.1A) |
+| 106 | Integer | Current B | 0-320 (x0.1A) |
+| 107 | Integer | Current C | 0-320 (x0.1A) |
 | 109 | Integer | Power | 0-7000 (x0.1kW) |
 | 110 | Integer | Temperature | 0-100 (x0.1C) |
 | 112 | Integer | Session Energy | 0-100000 (x0.1kWh) |
